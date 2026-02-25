@@ -1,55 +1,84 @@
-# 言葉 Kotoba — Anime Quote Generator
+# 言葉 Kotoba
 
-A minimal, editorial-styled anime quote generator. Powered by the AnimeChan API, proxied through a Vercel serverless function.
+An anime quote generator with a dark editorial design. Built with vanilla HTML, CSS, and JavaScript, deployed on Vercel.
 
-## Project Structure
+Live site: [kotoba-vert.vercel.app](https://kotoba-vert.vercel.app)
+
+---
+
+## What it does
+
+Fetches random anime quotes from the AnimeChan API through a serverless proxy. Falls back to a local set of quotes if the API is unreachable. Saves favorites to localStorage so they persist between visits.
+
+**Keyboard shortcuts**
+
+| Key | Action |
+|-----|--------|
+| `Space` or `→` | Next quote |
+| `S` | Save / unsave current quote |
+| `D` | Quote of the Day |
+| `Esc` | Close favorites drawer |
+
+---
+
+## Project structure
 
 ```
 /
-├── index.html          — Frontend
+├── index.html
 ├── api/
-│   └── quote.js        — Vercel serverless function (API proxy)
-├── vercel.json         — Vercel configuration
-└── README.md
+│   └── quote.js
+└── vercel.json
 ```
 
-## Deploy to Vercel
+The `api/` folder is what Vercel picks up as serverless functions. If these files are in the root they won't work — they have to be inside `api/`.
 
-1. Push this project to a GitHub repository
-2. Go to [vercel.com](https://vercel.com) and import the repository
-3. Vercel auto-detects the `api/` folder and deploys it as serverless functions
-4. No environment variables are needed for AnimeChan (it's a free, public API)
+---
 
-### Adding a paid API key later
+## Running locally
 
-If you switch to a paid API (like Quotable, or a custom source):
-
-1. Go to your Vercel project dashboard → **Settings → Environment Variables**
-2. Add your key, e.g. `ANIME_API_KEY=your_secret_here`
-3. Inside `api/quote.js`, access it with `process.env.ANIME_API_KEY`
-
-That way the key never touches your frontend.
-
-## Local Development
+You need the Vercel CLI to run the API functions locally. Without it, the site loads but falls back to hardcoded quotes since there's no server handling `/api/quote`.
 
 ```bash
 npm install -g vercel
 vercel dev
 ```
 
-This spins up both the static site and the `/api/quote` function locally on `http://localhost:3000`.
+Opens at `http://localhost:3000` with everything working the same as production.
 
-## Features
+---
 
-- Fetches random anime quotes from AnimeChan
-- Graceful fallback to hardcoded quotes if the API is down
-- Animated quote transitions (fade + slide)
-- Top loading bar during fetch
-- Copy-to-clipboard with formatted attribution
-- Quote counter
-- Fully responsive
+## Deploying
 
-## Known Limitations
+Push to GitHub and connect the repo in [vercel.com](https://vercel.com). It deploys automatically on every push. No environment variables needed — AnimeChan is a free public API.
 
-- AnimeChan is a free community API — occasional downtime is possible. The fallback quotes handle this gracefully.
-- No offline support (no service worker). Add one if you need PWA behavior.
+To deploy from the terminal:
+
+```bash
+vercel --prod
+```
+
+---
+
+## Checking if the API works
+
+Click the **⚡ button** in the header. It pings `/api/quote` and shows a toast with the response time if it's up, or an error message if it's down.
+
+---
+
+## Switching to a different API
+
+1. Add your key in Vercel dashboard → Settings → Environment Variables
+2. Reference it in `api/quote.js` with `process.env.YOUR_KEY`
+3. Update the fetch URL in `quote.js` to point at the new endpoint
+
+The frontend never changes — it always just hits `/api/quote`.
+
+---
+
+## Tech
+
+- No frameworks, no build step
+- Fonts: Playfair Display + Syne via Google Fonts
+- API: [AnimeChan](https://animechan.io) (free tier, 5 req/hour)
+- Hosting: Vercel
