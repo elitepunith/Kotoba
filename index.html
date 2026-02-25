@@ -375,18 +375,6 @@
       color: var(--muted);
     }
 
-    .error-msg {
-      font-size: 0.68rem;
-      color: var(--muted);
-      letter-spacing: 0.04em;
-      margin-top: 1.25rem;
-      display: none;
-      opacity: 0.8;
-    }
-
-    .error-msg.visible {
-      display: block;
-    }
 
     footer {
       padding: 1.25rem 3rem;
@@ -706,7 +694,6 @@
           <span class="anime-name" id="animeName"></span>
         </div>
       </div>
-      <p class="error-msg" id="errorMsg">API unavailable — showing a local quote instead.</p>
       <div class="actions">
         <button class="btn-next" id="nextBtn" onclick="loadQuote()">
           <span>Next Quote</span>
@@ -725,13 +712,13 @@
       <span class="footer-text">Kotoba — Words that stayed</span>
       <span class="footer-counter">Quote <span id="quoteCounter">—</span></span>
     </div>
-    <span class="footer-api">Powered by <a href="https://animechan.io" target="_blank" rel="noopener">AnimeChan</a></span>
+    <span class="footer-api">100+ quotes, zero dependencies</span>
   </footer>
 
   <div class="toast" id="toast"></div>
 
   <script>
-    const localQuotes = [
+    const quotes = [
       { quote: "The world is not beautiful, therefore it is.", character: "Kino", anime: "Kino's Journey" },
       { quote: "Power is not will, it is the phenomenon of physically making things happen.", character: "Madara Uchiha", anime: "Naruto Shippuden" },
       { quote: "Whatever you lose, you'll find it again. But what you throw away you'll never get back.", character: "Himura Kenshin", anime: "Rurouni Kenshin" },
@@ -742,19 +729,101 @@
       { quote: "A dropout will beat a genius through hard work.", character: "Rock Lee", anime: "Naruto" },
       { quote: "If you don't share someone's pain, you can never understand them.", character: "Nagato", anime: "Naruto Shippuden" },
       { quote: "Even if I lose this feeling, I'm sure I'll just fall in love with you all over again.", character: "Syaoran Li", anime: "Cardcaptor Sakura" },
+      { quote: "The moment you think of giving up, think of the reason why you held on so long.", character: "Natsu Dragneel", anime: "Fairy Tail" },
+      { quote: "Hard work is worthless for those that don't believe in themselves.", character: "Naruto Uzumaki", anime: "Naruto" },
+      { quote: "A person grows up when he's able to overcome hardships. Protection is important, but there are some things that a person must learn on his own.", character: "Jiraiya", anime: "Naruto" },
+      { quote: "We are all like fireworks. We climb, shine, and always go our separate ways and become further apart. But even if that time comes, let's not disappear like a firework, and continue to shine forever.", character: "Hitsugaya Toshiro", anime: "Bleach" },
+      { quote: "You can't sit around envying other people's worlds. You have to go out and change your own.", character: "Shinichi Mechazawa", anime: "Cromartie High School" },
+      { quote: "Life is not a game of luck. If you wanna win, work hard.", character: "Sora", anime: "No Game No Life" },
+      { quote: "It's okay to not know what you want to do with your life. The important thing is you keep moving forward.", character: "Shouko Nishimiya", anime: "A Silent Voice" },
+      { quote: "Every journey begins with a single step. We just have to have patience.", character: "Milly Thompson", anime: "Trigun" },
+      { quote: "Knowing you're different is only the beginning. If you accept these differences you'll be able to get past them and grow even closer.", character: "Miss Kobayashi", anime: "Miss Kobayashi's Dragon Maid" },
+      { quote: "No matter how hard or impossible it is, never lose sight of your goal.", character: "Monkey D. Luffy", anime: "One Piece" },
+      { quote: "I refuse to let my fear control me anymore.", character: "Izuku Midoriya", anime: "My Hero Academia" },
+      { quote: "It's not about whether you can or you can't. Some things in life, you just do.", character: "Lightning", anime: "Final Fantasy XIII" },
+      { quote: "The strong should aid and protect the weak. Then the weak will become strong and they in turn will aid and protect those weaker than themselves. That is the duty of the strong.", character: "Fuhrer King Bradley", anime: "Fullmetal Alchemist" },
+      { quote: "Being weak is nothing to be ashamed of. Staying weak is.", character: "Fuhrer King Bradley", anime: "Fullmetal Alchemist" },
+      { quote: "Mistakes are not shackles that halt one forward. To not make mistakes is the abnormality.", character: "Shogo Makishima", anime: "Psycho-Pass" },
+      { quote: "Fear is not evil. It tells you what your weakness is. And once you know your weakness, you can become stronger as well as kinder.", character: "Gildarts Clive", anime: "Fairy Tail" },
+      { quote: "An excellent leader must be passionate because it's their duty to keep everyone moving forward.", character: "Nico Yazawa", anime: "Love Live!" },
+      { quote: "When you give up, that's when the game ends.", character: "Mitsuyoshi Anzai", anime: "Slam Dunk" },
+      { quote: "If you wanna make people dream, you've gotta start by believing in that dream yourself.", character: "Seiya Kanie", anime: "Amagi Brilliant Park" },
+      { quote: "To know sorrow is not terrifying. What is terrifying is to know you can't go back to happiness you could have.", character: "Matsumoto Rangiku", anime: "Bleach" },
+      { quote: "You can't keep snakes from being snakes.", character: "Holo", anime: "Spice and Wolf" },
+      { quote: "The ticket to the future is always open.", character: "Vash the Stampede", anime: "Trigun" },
+      { quote: "I want to be a hero so badly.", character: "Izuku Midoriya", anime: "My Hero Academia" },
+      { quote: "It's not the face that makes someone a monster, it's the choices they make with their lives.", character: "Naruto Uzumaki", anime: "Naruto" },
+      { quote: "Whatever you do, enjoy it to the fullest. That is the secret of life.", character: "Rider", anime: "Fate/Zero" },
+      { quote: "A real hero can overcome any obstacles with just a smile.", character: "All Might", anime: "My Hero Academia" },
+      { quote: "Hatred and sorrow are power. They are yours to control. All you have to do is turn them into strength and use that strength to move forward.", character: "Sebastian Michaelis", anime: "Black Butler" },
+      { quote: "Don't beg for things. Do it yourself, or else you won't get anything.", character: "Renton Thurston", anime: "Eureka Seven" },
+      { quote: "Life is like a tube of toothpaste. When you've used all the toothpaste down to the last squeeze, that's when you've really lived. Live with all your might, and struggle as long as you have life.", character: "Mawari Zenigata", anime: "Binbougami ga!" },
+      { quote: "If you just submit yourself to fate, then that's the end of it.", character: "Keiichi Maebara", anime: "Higurashi no Naku Koro ni" },
+      { quote: "There is no such thing as a painless lesson. They just don't exist. Sacrifices are necessary. You can't gain anything without losing something first.", character: "Edward Elric", anime: "Fullmetal Alchemist" },
+      { quote: "Equivalent exchange. I'll give you half my life, so give me half of yours.", character: "Edward Elric", anime: "Fullmetal Alchemist" },
+      { quote: "A lesson without pain is meaningless. That's because no one can gain without sacrificing something.", character: "Edward Elric", anime: "Fullmetal Alchemist Brotherhood" },
+      { quote: "The world is cruel, but also very beautiful.", character: "Mikasa Ackerman", anime: "Attack on Titan" },
+      { quote: "If you begin to regret, you'll dull your future decisions and let others make your choices for you. All that's left for you then is to die. Nobody can foretell the outcome. Each decision you make is how you live your life.", character: "Erwin Smith", anime: "Attack on Titan" },
+      { quote: "Even if we forget the faces of our friends, we will never forget the bonds that were carved into our souls.", character: "Otonashi Yuzuru", anime: "Angel Beats!" },
+      { quote: "Simplicity is the easiest path to true beauty.", character: "Seijuro Akashi", anime: "Kuroko's Basketball" },
+      { quote: "A small flower that blooms in the wilderness has its own beauty.", character: "Cosette", anime: "Les Misérables" },
+      { quote: "Protecting someone means giving them a place to belong. Giving them a place where they can be happy.", character: "Princess Lenessia", anime: "Log Horizon" },
+      { quote: "Moving on doesn't mean you forget about things. It just means you have to accept what happened and continue living.", character: "Erza Scarlet", anime: "Fairy Tail" },
+      { quote: "A true friend is someone who sees the pain in your eyes while everyone else believes the smile on your face.", character: "Pain", anime: "Naruto Shippuden" },
+      { quote: "Religion, ideology, resources, land, spite, love or just because. No matter how pathetic the reason, it's enough to start a war.", character: "Paine", anime: "Final Fantasy X-2" },
+      { quote: "You need to accept the fact that you're not the best and have all the will to strive to be better than anyone you face.", character: "Roronoa Zoro", anime: "One Piece" },
+      { quote: "If you are killed, I will kill the person who killed you.", character: "Erza Scarlet", anime: "Fairy Tail" },
+      { quote: "The people's greatest fear is being laughed at. But that's the one thing that lets you escape from the script that society has provided.", character: "Nagato Yuki", anime: "The Melancholy of Haruhi Suzumiya" },
+      { quote: "We're not just friends. We're nakama. People who believe in each other.", character: "Monkey D. Luffy", anime: "One Piece" },
+      { quote: "Even if no one believes in you, you have to believe in yourself.", character: "Naruto Uzumaki", anime: "Naruto" },
+      { quote: "If you're not willing to do that, then don't bother coming at me.", character: "Roronoa Zoro", anime: "One Piece" },
+      { quote: "Sometimes I do feel like I'm a failure. Like there's no hope for me. But even so, I'm not gonna give up. Ever!", character: "Izuku Midoriya", anime: "My Hero Academia" },
+      { quote: "I'll leave tomorrow's problems to tomorrow's me.", character: "Saitama", anime: "One Punch Man" },
+      { quote: "Human beings are strong because we can change ourselves.", character: "Saitama", anime: "One Punch Man" },
+      { quote: "I'm not gonna run away. I never go back on my word. That's my nindo, my ninja way.", character: "Naruto Uzumaki", anime: "Naruto" },
+      { quote: "The most painful thing is losing yourself in the process of loving someone too much.", character: "Kaori Miyazono", anime: "Your Lie in April" },
+      { quote: "Music has a power of its own, transcending all words and logic.", character: "Kousei Arima", anime: "Your Lie in April" },
+      { quote: "You've grown so much, yet you still fit perfectly in my arms.", character: "Violet Evergarden", anime: "Violet Evergarden" },
+      { quote: "Even the most useless person has their use somewhere.", character: "Osamu Dazai", anime: "Bungo Stray Dogs" },
+      { quote: "If you're always trying to be normal, you'll never know how amazing you can be.", character: "Maya Angelou", anime: "N/A" },
+      { quote: "You don't need a reason to help people.", character: "Zidane Tribal", anime: "Final Fantasy IX" },
+      { quote: "All this time, I seriously thought that it's better to die than to live your life alone.", character: "Kirito", anime: "Sword Art Online" },
+      { quote: "Living is a continuous process of choosing what kind of person to become.", character: "Ginko", anime: "Mushishi" },
+      { quote: "Life isn't just about passing on your genes. We can leave behind much more than just DNA. Through speech, music, literature and movies — what we've seen, heard, felt, anger, joy and sorrow — these are the things I will pass on.", character: "Big Boss", anime: "Metal Gear Solid" },
+      { quote: "The world is full of obvious things which nobody by any chance ever observes.", character: "L Lawliet", anime: "Death Note" },
+      { quote: "I am justice!", character: "Light Yagami", anime: "Death Note" },
+      { quote: "This world is rotten and those who are making it rot deserve to die.", character: "Light Yagami", anime: "Death Note" },
+      { quote: "A weapon is only as good as the person using it.", character: "Kiritsugu Emiya", anime: "Fate/Zero" },
+      { quote: "If an angel, who has the purest of hearts, can lose it after seeing the atrocities humans commit, then what future does humanity have?", character: "Johan Liebert", anime: "Monster" },
+      { quote: "No matter what path you take in life, don't give up on what you believe in.", character: "Alphonse Elric", anime: "Fullmetal Alchemist" },
+      { quote: "Tears are how our heart speaks when our lips cannot describe how much we've been hurt.", character: "Jellal Fernandes", anime: "Fairy Tail" },
+      { quote: "I want to be someone who has the strength to turn regret into motivation.", character: "Shouyou Hinata", anime: "Haikyu!!" },
+      { quote: "Today might be the last time. There's no guarantee tomorrow will come. That's why I want to live without regrets.", character: "Kenma Kozume", anime: "Haikyu!!" },
+      { quote: "The only home we have is the one we make.", character: "Nausicaä", anime: "Nausicaä of the Valley of the Wind" },
+      { quote: "I think death is equally terrible for everyone. Young people, old people, the good, the bad — it's always the same. It's rather fair in its treatment. There's no such thing as a bad way to die.", character: "Yuri", anime: "Angel Beats!" },
+      { quote: "The past is the past and the future is the future. A man is a man, and a woman is a woman. I am who I am, and you are who you are.", character: "Ryuuji Takasu", anime: "Toradora!" },
+      { quote: "A dream is worth less than nothing if you don't have someone else to share it.", character: "Dousan Saitou", anime: "The Ambition of Oda Nobuna" },
+      { quote: "Anything can happen. No one said life was fair.", character: "Misaki Ayuzawa", anime: "Maid Sama!" },
+      { quote: "If you can't do something, then don't. Focus on what you can do.", character: "Shiroe", anime: "Log Horizon" },
+      { quote: "Those who stand at the top determine what's wrong and what's right! This very place is neutral ground! Justice will prevail, you say? But of course it will! Whoever wins this war becomes justice!", character: "Don Quixote Doflamingo", anime: "One Piece" },
+      { quote: "The sea's expanse is not determined by its depth but by its breadth.", character: "Silvers Rayleigh", anime: "One Piece" },
+      { quote: "People, who can't throw something important away, can never hope to change anything.", character: "Armin Arlert", anime: "Attack on Titan" },
+      { quote: "Sometimes, people are just mean. Don't fight mean with mean. Hold your head high.", character: "Tohru Honda", anime: "Fruits Basket" },
+      { quote: "We don't have to know what tomorrow holds. That's why we can live for everything we're worth today.", character: "Fruits Basket Character", anime: "Fruits Basket" },
+      { quote: "Forgive me for being selfish. I just... I want to live.", character: "Homura Akemi", anime: "Puella Magi Madoka Magica" },
+      { quote: "Just be yourself, as long as you don't hurt others in the process.", character: "Kira Yamato", anime: "Gundam SEED" },
     ];
 
     let quoteCount = 0;
+
     let busy = false;
     let current = { quote: '', character: '', anime: '' };
-    let recentQuotes = [];
+    let recentIdx = [];
 
     function bar(state) {
       const el = document.getElementById('loadingBar');
       el.className = 'loading-bar';
-      if (state === 'start') {
-        requestAnimationFrame(() => el.classList.add('running'));
-      }
+      if (state === 'start') requestAnimationFrame(() => el.classList.add('running'));
       if (state === 'done') {
         el.classList.add('done');
         setTimeout(() => el.className = 'loading-bar', 300);
@@ -772,14 +841,12 @@
     function swap(callback) {
       const text = document.getElementById('quoteText');
       const meta = document.getElementById('quoteMeta');
-
       text.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
       meta.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
       text.style.opacity = '0';
       text.style.transform = 'translateY(8px)';
       meta.style.opacity = '0';
       meta.style.transform = 'translateY(8px)';
-
       setTimeout(() => {
         callback();
         text.style.opacity = '1';
@@ -789,50 +856,26 @@
       }, 250);
     }
 
-    function pickFreshLocal() {
-      const unused = localQuotes.filter(q => !recentQuotes.includes(q.quote));
-      const pool = unused.length > 0 ? unused : localQuotes;
-      const pick = pool[Math.floor(Math.random() * pool.length)];
-      recentQuotes.push(pick.quote);
-      if (recentQuotes.length > 5) recentQuotes.shift();
-      return pick;
+    function pickQuote() {
+      const available = quotes.map((_, i) => i).filter(i => !recentIdx.includes(i));
+      const pool = available.length > 0 ? available : quotes.map((_, i) => i);
+      const idx = pool[Math.floor(Math.random() * pool.length)];
+      recentIdx.push(idx);
+      if (recentIdx.length > Math.floor(quotes.length / 2)) recentIdx.shift();
+      return quotes[idx];
     }
 
-    async function loadQuote() {
+    function loadQuote() {
       if (busy) return;
       busy = true;
 
       const btn = document.getElementById('nextBtn');
-      const err = document.getElementById('errorMsg');
       btn.disabled = true;
-      err.classList.remove('visible');
+
       setQotd(false);
       bar('start');
 
-      let data = null;
-      let usedFallback = false;
-
-      try {
-        const res = await fetch('/api/quote');
-        if (!res.ok) throw new Error('api');
-        const json = await res.json();
-        if (json.error || !json.quote) throw new Error('bad data');
-
-        if (recentQuotes.includes(json.quote)) {
-          const retry = await fetch('/api/quote');
-          const retryJson = await retry.json();
-          data = (!retryJson.error && retryJson.quote) ? retryJson : json;
-        } else {
-          data = json;
-        }
-
-        recentQuotes.push(data.quote);
-        if (recentQuotes.length > 10) recentQuotes.shift();
-      } catch {
-        data = pickFreshLocal();
-        usedFallback = true;
-      }
-
+      const data = pickQuote();
       quoteCount++;
       bar('done');
 
@@ -840,7 +883,6 @@
         render(data.quote, data.character, data.anime);
         document.getElementById('eyebrowLabel').textContent = `Series #${quoteCount}`;
         document.getElementById('quoteCounter').textContent = String(quoteCount).padStart(3, '0');
-        if (usedFallback) err.classList.add('visible');
       });
 
       setTimeout(() => {
@@ -872,28 +914,15 @@
         } catch {}
       }
 
-      const idx = dateHash(today) % localQuotes.length;
-      const fallbackPick = localQuotes[idx];
+      const idx = dateHash(today) % quotes.length;
+      const fallbackPick = quotes[idx];
 
-      fetch('/api/quote')
-        .then(r => r.ok ? r.json() : null)
-        .then(data => {
-          const q = (data && !data.error && data.quote) ? data : fallbackPick;
-          localStorage.setItem('kotoba_qotd', JSON.stringify({ date: today, ...q }));
-          swap(() => {
-            render(q.quote, q.character, q.anime);
-            document.getElementById('eyebrowLabel').textContent = 'Quote of the Day';
-            setQotd(true);
-          });
-        })
-        .catch(() => {
-          localStorage.setItem('kotoba_qotd', JSON.stringify({ date: today, ...fallbackPick }));
-          swap(() => {
-            render(fallbackPick.quote, fallbackPick.character, fallbackPick.anime);
-            document.getElementById('eyebrowLabel').textContent = 'Quote of the Day';
-            setQotd(true);
-          });
-        });
+      localStorage.setItem('kotoba_qotd', JSON.stringify({ date: today, ...fallbackPick }));
+      swap(() => {
+        render(fallbackPick.quote, fallbackPick.character, fallbackPick.anime);
+        document.getElementById('eyebrowLabel').textContent = 'Quote of the Day';
+        setQotd(true);
+      });
     }
 
     function dateHash(str) {
@@ -1017,24 +1046,8 @@
       el._timer = setTimeout(() => el.className = 'toast', 3000);
     }
 
-    async function checkApi() {
-      const btn = document.getElementById('apiBtn');
-      btn.style.opacity = '0.5';
-      btn.style.pointerEvents = 'none';
-      try {
-        const start = Date.now();
-        const res = await fetch('/api/quote');
-        const ms = Date.now() - start;
-        if (!res.ok) throw new Error(res.status);
-        const data = await res.json();
-        if (data.error || !data.quote) throw new Error('bad response');
-        showToast(`API online — ${ms}ms`, 'ok');
-      } catch (err) {
-        showToast('API offline — using local quotes', 'fail');
-      } finally {
-        btn.style.opacity = '';
-        btn.style.pointerEvents = '';
-      }
+    function checkApi() {
+      showToast(`${quotes.length} quotes loaded — no API needed`, 'ok');
     }
 
     function toggleTheme() {
