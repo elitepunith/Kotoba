@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kotoba — Anime Quotes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Syne:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --ink: #0c0c0c;
+      --paper: #f5f0e8;
+      --accent: #c0392b;
+      --muted: #6b6560;
+      --line: rgba(245, 240, 232, 0.1);
+    }
+
+    html, body {
+      height: 100%;
+    }
+
+    body {
+      background-color: var(--ink);
+      color: var(--paper);
+      font-family: 'Syne', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.4;
+    }
+
+    header {
+      padding: 2rem 3rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+      position: relative;
+      z-index: 1;
+    }
+
+    .logo {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .logo-text {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: var(--paper);
+    }
+
+    .logo-sub {
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .header-count {
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .header-count span {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4rem 3rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .quote-stage {
+      max-width: 860px;
+      width: 100%;
+      position: relative;
+    }
+
+    .quote-number {
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 2.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .quote-number::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--line);
+      max-width: 80px;
+    }
+
+    .quote-mark {
+      font-family: 'Playfair Display', serif;
+      font-size: 6rem;
+      line-height: 0.8;
+      color: var(--accent);
+      display: block;
+      margin-bottom: 1.5rem;
+      opacity: 0.9;
+      user-select: none;
+    }
+
+    .quote-text {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(1.6rem, 3.5vw, 2.6rem);
+      line-height: 1.45;
+      font-weight: 400;
+      color: var(--paper);
+      letter-spacing: 0.01em;
+      transition: opacity 0.35s ease, transform 0.35s ease;
+    }
+
+    .quote-text.fading {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    .quote-meta {
+      margin-top: 2.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      transition: opacity 0.35s ease, transform 0.35s ease;
+    }
+
+    .quote-meta.fading {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    .meta-divider {
+      width: 40px;
+      height: 1px;
+      background: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .meta-info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .character-name {
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      color: var(--paper);
+      text-transform: uppercase;
+    }
+
+    .anime-name {
+      font-size: 0.75rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      font-style: italic;
+      font-family: 'Playfair Display', serif;
+    }
+
+    .actions {
+      margin-top: 4rem;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+
+    .btn-next {
+      background: var(--paper);
+      color: var(--ink);
+      border: none;
+      padding: 1rem 2.5rem;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+
+    .btn-next::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--accent);
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      z-index: 0;
+    }
+
+    .btn-next span {
+      position: relative;
+      z-index: 1;
+    }
+
+    .btn-next:hover::after {
+      transform: translateX(0);
+    }
+
+    .btn-next:hover {
+      color: var(--paper);
+    }
+
+    .btn-next:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-next:disabled::after {
+      display: none;
+    }
+
+    .btn-copy {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--line);
+      padding: 1rem 1.5rem;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .btn-copy:hover {
+      color: var(--paper);
+      border-color: rgba(245, 240, 232, 0.3);
+    }
+
+    .btn-copy.copied {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .loading-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 2px;
+      background: var(--accent);
+      width: 0%;
+      transition: width 0.4s ease;
+      z-index: 100;
+    }
+
+    .loading-bar.active {
+      width: 70%;
+    }
+
+    .loading-bar.done {
+      width: 100%;
+      transition: width 0.2s ease;
+    }
+
+    .error-state {
+      display: none;
+      font-size: 0.8rem;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+      margin-top: 1rem;
+    }
+
+    .error-state.visible {
+      display: block;
+    }
+
+    footer {
+      padding: 1.5rem 3rem;
+      border-top: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      z-index: 1;
+    }
+
+    .footer-text {
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .footer-api {
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+    }
+
+    .footer-api a {
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .footer-api a:hover {
+      color: var(--paper);
+    }
+
+    @media (max-width: 640px) {
+      header {
+        padding: 1.5rem;
+      }
+
+      main {
+        padding: 3rem 1.5rem;
+      }
+
+      .quote-mark {
+        font-size: 4rem;
+      }
+
+      footer {
+        padding: 1.5rem;
+        flex-direction: column;
+        gap: 0.5rem;
+        text-align: center;
+      }
+
+      .actions {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .btn-next, .btn-copy {
+        width: 100%;
+        text-align: center;
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .quote-stage {
+      animation: fadeIn 0.6s ease forwards;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="loading-bar" id="loadingBar"></div>
+
+  <header>
+    <div class="logo">
+      <span class="logo-text">言葉 Kotoba</span>
+      <span class="logo-sub">Anime Quote Archive</span>
+    </div>
+    <div class="header-count">
+      Quote <span id="quoteCounter">001</span>
+    </div>
+  </header>
+
+  <main>
+    <div class="quote-stage">
+      <div class="quote-number" id="quoteLabel">Loading</div>
+      <span class="quote-mark" aria-hidden="true">"</span>
+      <p class="quote-text" id="quoteText">The world is not beautiful, therefore it is.</p>
+      <div class="quote-meta" id="quoteMeta">
+        <div class="meta-divider"></div>
+        <div class="meta-info">
+          <span class="character-name" id="characterName">Kino</span>
+          <span class="anime-name" id="animeName">Kino's Journey</span>
+        </div>
+      </div>
+      <p class="error-state" id="errorState">Could not load a new quote. Please try again.</p>
+      <div class="actions">
+        <button class="btn-next" id="nextBtn" onclick="loadQuote()">
+          <span>Next Quote</span>
+        </button>
+        <button class="btn-copy" id="copyBtn" onclick="copyQuote()">Copy</button>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <span class="footer-text">Kotoba — Words that stayed</span>
+    <span class="footer-api">Powered by <a href="https://animechan.io" target="_blank" rel="noopener">AnimeChan</a></span>
+  </footer>
+
+  <script>
+    const fallbackQuotes = [
+      { quote: "The world is not beautiful, therefore it is.", character: "Kino", anime: "Kino's Journey" },
+      { quote: "Power is not will, it is the phenomenon of physically making things happen.", character: "Madara Uchiha", anime: "Naruto Shippuden" },
+      { quote: "Whatever you lose, you'll find it again. But what you throw away you'll never get back.", character: "Himura Kenshin", anime: "Rurouni Kenshin" },
+      { quote: "I want to be a hero so badly.", character: "Izuku Midoriya", anime: "My Hero Academia" },
+      { quote: "It's not the face that makes someone a monster, it's the choices they make with their lives.", character: "Naruto Uzumaki", anime: "Naruto" },
+      { quote: "The moment you think of giving up, think of the reason why you held on so long.", character: "Natsu Dragneel", anime: "Fairy Tail" },
+      { quote: "If you don't take risks, you can't create a future.", character: "Monkey D. Luffy", anime: "One Piece" },
+      { quote: "Loneliness is peaceful, but there will be no one to share the peace with.", character: "Lain Iwakura", anime: "Serial Experiments Lain" },
+    ];
+
+    let quoteCount = 0;
+    let currentQuote = { quote: '', character: '', anime: '' };
+
+    function setLoadingBar(state) {
+      const bar = document.getElementById('loadingBar');
+      bar.className = 'loading-bar';
+      if (state === 'start') {
+        bar.classList.add('active');
+      } else if (state === 'done') {
+        bar.classList.add('done');
+        setTimeout(() => { bar.className = 'loading-bar'; }, 400);
+      }
+    }
+
+    function setElements(quote, character, anime) {
+      document.getElementById('quoteText').textContent = quote;
+      document.getElementById('characterName').textContent = character.toUpperCase();
+      document.getElementById('animeName').textContent = anime;
+      currentQuote = { quote, character, anime };
+    }
+
+    function transitionOut(callback) {
+      const text = document.getElementById('quoteText');
+      const meta = document.getElementById('quoteMeta');
+      text.classList.add('fading');
+      meta.classList.add('fading');
+      setTimeout(() => {
+        callback();
+        text.classList.remove('fading');
+        meta.classList.remove('fading');
+      }, 350);
+    }
+
+    async function loadQuote() {
+      const btn = document.getElementById('nextBtn');
+      const error = document.getElementById('errorState');
+
+      btn.disabled = true;
+      error.classList.remove('visible');
+      setLoadingBar('start');
+
+      try {
+        const res = await fetch('/api/quote');
+        if (!res.ok) throw new Error('API error');
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+
+        quoteCount++;
+        setLoadingBar('done');
+
+        transitionOut(() => {
+          setElements(data.quote, data.character, data.anime);
+          updateCounter();
+        });
+      } catch {
+        setLoadingBar('done');
+        const fallback = fallbackQuotes[Math.floor(Math.random() * fallbackQuotes.length)];
+        quoteCount++;
+
+        transitionOut(() => {
+          setElements(fallback.quote, fallback.character, fallback.anime);
+          updateCounter();
+          error.classList.add('visible');
+        });
+      } finally {
+        setTimeout(() => { btn.disabled = false; }, 400);
+      }
+    }
+
+    function updateCounter() {
+      const label = document.getElementById('quoteLabel');
+      const counter = document.getElementById('quoteCounter');
+      label.textContent = `Series #${quoteCount}`;
+      counter.textContent = String(quoteCount).padStart(3, '0');
+    }
+
+    function copyQuote() {
+      const btn = document.getElementById('copyBtn');
+      const text = `"${currentQuote.quote}" — ${currentQuote.character} (${currentQuote.anime})`;
+
+      navigator.clipboard.writeText(text).then(() => {
+        btn.textContent = 'Copied';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = 'Copy';
+          btn.classList.remove('copied');
+        }, 2000);
+      }).catch(() => {
+        btn.textContent = 'Failed';
+        setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+      });
+    }
+
+    loadQuote();
+  </script>
+</body>
+</html>

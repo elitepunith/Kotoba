@@ -1,0 +1,13 @@
+{
+  "functions": {
+    "api/quote.js": {
+      "runtime": "nodejs20.x"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/quote",
+      "destination": "/api/quote.js"
+    }
+  ]
+}
