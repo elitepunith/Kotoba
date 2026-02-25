@@ -2,12 +2,13 @@
   "functions": {
     "api/quote.js": {
       "runtime": "nodejs20.x"
+    },
+    "api/animes.js": {
+      "runtime": "nodejs20.x"
     }
   },
   "rewrites": [
-    {
-      "source": "/api/quote",
-      "destination": "/api/quote.js"
-    }
+    { "source": "/api/quote", "destination": "/api/quote.js" },
+    { "source": "/api/animes", "destination": "/api/animes.js" }
   ]
 }

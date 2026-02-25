@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Kotoba — Anime Quotes</title>
+  <title>言葉 Kotoba — Anime Quotes</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Syne:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Syne:wght@400;500;700;800&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after {
       margin: 0;
@@ -18,8 +18,22 @@
       --ink: #0c0c0c;
       --paper: #f5f0e8;
       --accent: #c0392b;
+      --accent-dim: rgba(192, 57, 43, 0.15);
       --muted: #6b6560;
       --line: rgba(245, 240, 232, 0.1);
+      --surface: #161616;
+      --surface-hover: #1e1e1e;
+      --overlay: rgba(12, 12, 12, 0.85);
+    }
+
+    [data-theme="light"] {
+      --ink: #f5f0e8;
+      --paper: #1a1714;
+      --muted: #8a8480;
+      --line: rgba(26, 23, 20, 0.12);
+      --surface: #ede8df;
+      --surface-hover: #e5dfd5;
+      --overlay: rgba(245, 240, 232, 0.9);
     }
 
     html, body {
@@ -33,7 +47,7 @@
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      position: relative;
+      transition: background-color 0.3s ease, color 0.3s ease;
       overflow-x: hidden;
     }
 
@@ -47,48 +61,122 @@
       opacity: 0.4;
     }
 
+    .loading-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 2px;
+      background: var(--accent);
+      width: 0%;
+      transition: width 0.4s ease;
+      z-index: 200;
+    }
+
+    .loading-bar.running { width: 70%; }
+    .loading-bar.done { width: 100%; transition: width 0.15s ease; }
+
     header {
-      padding: 2rem 3rem;
+      padding: 1.5rem 3rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
       border-bottom: 1px solid var(--line);
       position: relative;
-      z-index: 1;
+      z-index: 10;
+      gap: 1rem;
     }
 
     .logo {
       display: flex;
       flex-direction: column;
       gap: 2px;
+      flex-shrink: 0;
     }
 
     .logo-text {
       font-family: 'Playfair Display', serif;
-      font-size: 1.5rem;
+      font-size: 1.4rem;
       font-weight: 700;
       letter-spacing: 0.02em;
       color: var(--paper);
     }
 
     .logo-sub {
-      font-size: 0.65rem;
+      font-size: 0.6rem;
       font-weight: 500;
       letter-spacing: 0.2em;
       text-transform: uppercase;
       color: var(--muted);
     }
 
-    .header-count {
-      font-size: 0.7rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--muted);
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
     }
 
-    .header-count span {
+    .filter-wrap {
+      position: relative;
+    }
+
+    .anime-select {
+      appearance: none;
+      background: var(--surface);
+      color: var(--paper);
+      border: 1px solid var(--line);
+      padding: 0.5rem 2rem 0.5rem 0.85rem;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.2s ease;
+      max-width: 180px;
+    }
+
+    .anime-select:hover,
+    .anime-select:focus {
+      border-color: rgba(245, 240, 232, 0.3);
+    }
+
+    .filter-wrap::after {
+      content: '▾';
+      position: absolute;
+      right: 0.65rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+      font-size: 0.65rem;
+    }
+
+    .icon-btn {
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+      flex-shrink: 0;
+      font-size: 1rem;
+    }
+
+    .icon-btn:hover {
+      color: var(--paper);
+      border-color: rgba(245, 240, 232, 0.3);
+    }
+
+    .icon-btn.active {
       color: var(--accent);
-      font-weight: 700;
+      border-color: var(--accent);
+      background: var(--accent-dim);
     }
 
     main {
@@ -104,21 +192,35 @@
     .quote-stage {
       max-width: 860px;
       width: 100%;
-      position: relative;
+      animation: fadeUp 0.5s ease forwards;
     }
 
-    .quote-number {
-      font-size: 0.65rem;
+    .quote-eyebrow {
+      font-size: 0.62rem;
       letter-spacing: 0.2em;
       text-transform: uppercase;
       color: var(--muted);
-      margin-bottom: 2.5rem;
+      margin-bottom: 2rem;
       display: flex;
       align-items: center;
       gap: 1rem;
     }
 
-    .quote-number::after {
+    .qotd-badge {
+      background: var(--accent);
+      color: #fff;
+      font-size: 0.55rem;
+      letter-spacing: 0.15em;
+      padding: 0.2rem 0.5rem;
+      font-weight: 700;
+      display: none;
+    }
+
+    .qotd-badge.visible {
+      display: inline-block;
+    }
+
+    .quote-eyebrow::after {
       content: '';
       flex: 1;
       height: 1px;
@@ -128,93 +230,94 @@
 
     .quote-mark {
       font-family: 'Playfair Display', serif;
-      font-size: 6rem;
+      font-size: 5rem;
       line-height: 0.8;
       color: var(--accent);
       display: block;
-      margin-bottom: 1.5rem;
-      opacity: 0.9;
+      margin-bottom: 1.25rem;
       user-select: none;
     }
 
     .quote-text {
       font-family: 'Playfair Display', serif;
-      font-size: clamp(1.6rem, 3.5vw, 2.6rem);
-      line-height: 1.45;
+      font-size: clamp(1.5rem, 3.2vw, 2.4rem);
+      line-height: 1.5;
       font-weight: 400;
       color: var(--paper);
       letter-spacing: 0.01em;
-      transition: opacity 0.35s ease, transform 0.35s ease;
+      transition: opacity 0.3s ease, transform 0.3s ease;
     }
 
-    .quote-text.fading {
+    .quote-text.out {
       opacity: 0;
-      transform: translateY(8px);
+      transform: translateY(10px);
     }
 
     .quote-meta {
-      margin-top: 2.5rem;
+      margin-top: 2rem;
       display: flex;
       align-items: center;
-      gap: 1.5rem;
-      transition: opacity 0.35s ease, transform 0.35s ease;
+      gap: 1.25rem;
+      transition: opacity 0.3s ease, transform 0.3s ease;
     }
 
-    .quote-meta.fading {
+    .quote-meta.out {
       opacity: 0;
-      transform: translateY(8px);
+      transform: translateY(10px);
     }
 
     .meta-divider {
-      width: 40px;
+      width: 36px;
       height: 1px;
       background: var(--accent);
       flex-shrink: 0;
     }
 
-    .meta-info {
+    .meta-text {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 3px;
     }
 
     .character-name {
-      font-size: 1rem;
+      font-size: 0.85rem;
       font-weight: 700;
-      letter-spacing: 0.05em;
-      color: var(--paper);
+      letter-spacing: 0.08em;
       text-transform: uppercase;
+      color: var(--paper);
     }
 
     .anime-name {
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       color: var(--muted);
-      letter-spacing: 0.1em;
+      letter-spacing: 0.08em;
       font-style: italic;
       font-family: 'Playfair Display', serif;
     }
 
     .actions {
-      margin-top: 4rem;
+      margin-top: 3rem;
       display: flex;
       align-items: center;
-      gap: 1.5rem;
+      gap: 1rem;
+      flex-wrap: wrap;
     }
 
     .btn-next {
       background: var(--paper);
       color: var(--ink);
       border: none;
-      padding: 1rem 2.5rem;
+      padding: 0.9rem 2.2rem;
       font-family: 'Syne', sans-serif;
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       font-weight: 700;
       letter-spacing: 0.15em;
       text-transform: uppercase;
       cursor: pointer;
       position: relative;
       overflow: hidden;
-      transition: background 0.2s ease, color 0.2s ease;
+      transition: color 0.25s ease;
+      flex-shrink: 0;
     }
 
     .btn-next::after {
@@ -222,9 +325,8 @@
       position: absolute;
       inset: 0;
       background: var(--accent);
-      transform: translateX(-100%);
+      transform: translateX(-101%);
       transition: transform 0.3s ease;
-      z-index: 0;
     }
 
     .btn-next span {
@@ -236,26 +338,21 @@
       transform: translateX(0);
     }
 
-    .btn-next:hover {
-      color: var(--paper);
-    }
+    .btn-next:hover { color: #fff; }
 
     .btn-next:disabled {
-      opacity: 0.5;
+      opacity: 0.45;
       cursor: not-allowed;
+      pointer-events: none;
     }
 
-    .btn-next:disabled::after {
-      display: none;
-    }
-
-    .btn-copy {
+    .btn-ghost {
       background: transparent;
       color: var(--muted);
       border: 1px solid var(--line);
-      padding: 1rem 1.5rem;
+      padding: 0.9rem 1.4rem;
       font-family: 'Syne', sans-serif;
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       font-weight: 500;
       letter-spacing: 0.1em;
       text-transform: uppercase;
@@ -263,67 +360,88 @@
       transition: color 0.2s ease, border-color 0.2s ease;
     }
 
-    .btn-copy:hover {
+    .btn-ghost:hover {
       color: var(--paper);
       border-color: rgba(245, 240, 232, 0.3);
     }
 
-    .btn-copy.copied {
+    .btn-ghost.saved {
       color: var(--accent);
       border-color: var(--accent);
     }
 
-    .loading-bar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      height: 2px;
-      background: var(--accent);
-      width: 0%;
-      transition: width 0.4s ease;
-      z-index: 100;
+    .btn-ghost.copied {
+      color: #4caf50;
+      border-color: #4caf50;
     }
 
-    .loading-bar.active {
-      width: 70%;
+    .keyboard-hint {
+      font-size: 0.6rem;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
     }
 
-    .loading-bar.done {
-      width: 100%;
-      transition: width 0.2s ease;
+    .keyboard-hint kbd {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      padding: 0.15rem 0.4rem;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.58rem;
+      color: var(--muted);
+      border-radius: 2px;
     }
 
-    .error-state {
-      display: none;
-      font-size: 0.8rem;
+    .error-msg {
+      font-size: 0.72rem;
       color: var(--muted);
       letter-spacing: 0.05em;
       margin-top: 1rem;
+      display: none;
     }
 
-    .error-state.visible {
-      display: block;
-    }
+    .error-msg.visible { display: block; }
 
     footer {
-      padding: 1.5rem 3rem;
+      padding: 1.25rem 3rem;
       border-top: 1px solid var(--line);
       display: flex;
       align-items: center;
       justify-content: space-between;
       position: relative;
       z-index: 1;
+      gap: 1rem;
+    }
+
+    .footer-left {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
     }
 
     .footer-text {
-      font-size: 0.65rem;
+      font-size: 0.62rem;
       letter-spacing: 0.15em;
       text-transform: uppercase;
       color: var(--muted);
     }
 
+    .footer-counter {
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+    }
+
+    .footer-counter span {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
     .footer-api {
-      font-size: 0.65rem;
+      font-size: 0.62rem;
       letter-spacing: 0.1em;
       color: var(--muted);
     }
@@ -334,192 +452,572 @@
       transition: color 0.2s ease;
     }
 
-    .footer-api a:hover {
+    .footer-api a:hover { color: var(--paper); }
+
+    .favorites-drawer {
+      position: fixed;
+      top: 0;
+      right: -100%;
+      width: 420px;
+      max-width: 100vw;
+      height: 100vh;
+      background: var(--surface);
+      border-left: 1px solid var(--line);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .favorites-drawer.open {
+      right: 0;
+    }
+
+    .drawer-header {
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .drawer-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
       color: var(--paper);
     }
 
-    @media (max-width: 640px) {
+    .drawer-close {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 1.2rem;
+      line-height: 1;
+      padding: 0.25rem;
+      transition: color 0.2s ease;
+    }
+
+    .drawer-close:hover { color: var(--paper); }
+
+    .drawer-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem 2rem;
+    }
+
+    .drawer-body::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .drawer-body::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .drawer-body::-webkit-scrollbar-thumb {
+      background: var(--line);
+    }
+
+    .favorites-empty {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.8rem;
+      letter-spacing: 0.05em;
+      margin-top: 3rem;
+      line-height: 1.8;
+    }
+
+    .fav-item {
+      border-bottom: 1px solid var(--line);
+      padding: 1.25rem 0;
+      position: relative;
+      cursor: pointer;
+      transition: opacity 0.2s ease;
+    }
+
+    .fav-item:last-child { border-bottom: none; }
+    .fav-item:hover { opacity: 0.8; }
+
+    .fav-quote {
+      font-family: 'Playfair Display', serif;
+      font-size: 0.9rem;
+      line-height: 1.55;
+      color: var(--paper);
+      margin-bottom: 0.6rem;
+      padding-right: 1.5rem;
+    }
+
+    .fav-meta {
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    .fav-remove {
+      position: absolute;
+      top: 1.25rem;
+      right: 0;
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 0.8rem;
+      padding: 0.2rem;
+      transition: color 0.2s ease;
+      line-height: 1;
+    }
+
+    .fav-remove:hover { color: var(--accent); }
+
+    .drawer-footer {
+      padding: 1rem 2rem;
+      border-top: 1px solid var(--line);
+      flex-shrink: 0;
+    }
+
+    .drawer-clear {
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      padding: 0.6rem 1rem;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: color 0.2s ease, border-color 0.2s ease;
+      width: 100%;
+    }
+
+    .drawer-clear:hover {
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--overlay);
+      z-index: 99;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s ease;
+    }
+
+    .drawer-overlay.visible {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
       header {
-        padding: 1.5rem;
+        padding: 1.25rem 1.5rem;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+      }
+
+      .header-controls {
+        width: 100%;
+        justify-content: flex-start;
+      }
+
+      .anime-select {
+        max-width: 100%;
+        flex: 1;
       }
 
       main {
-        padding: 3rem 1.5rem;
+        padding: 2.5rem 1.5rem;
+        align-items: flex-start;
       }
 
       .quote-mark {
-        font-size: 4rem;
+        font-size: 3.5rem;
+      }
+
+      .actions {
+        gap: 0.75rem;
+      }
+
+      .keyboard-hint {
+        display: none;
       }
 
       footer {
-        padding: 1.5rem;
+        padding: 1.25rem 1.5rem;
         flex-direction: column;
-        gap: 0.5rem;
+        align-items: flex-start;
+        gap: 0.4rem;
+      }
+
+      .favorites-drawer {
+        width: 100vw;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .btn-next, .btn-ghost {
+        flex: 1;
         text-align: center;
       }
 
       .actions {
-        flex-direction: column;
-        align-items: flex-start;
+        flex-wrap: wrap;
       }
-
-      .btn-next, .btn-copy {
-        width: 100%;
-        text-align: center;
-      }
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(16px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .quote-stage {
-      animation: fadeIn 0.6s ease forwards;
     }
   </style>
 </head>
 <body>
 
   <div class="loading-bar" id="loadingBar"></div>
+  <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+
+  <aside class="favorites-drawer" id="favDrawer" aria-label="Saved favorites">
+    <div class="drawer-header">
+      <span class="drawer-title">Saved Quotes</span>
+      <button class="drawer-close" onclick="closeDrawer()" aria-label="Close">✕</button>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+    <div class="drawer-footer">
+      <button class="drawer-clear" onclick="clearAllFavorites()">Clear all</button>
+    </div>
+  </aside>
 
   <header>
     <div class="logo">
       <span class="logo-text">言葉 Kotoba</span>
       <span class="logo-sub">Anime Quote Archive</span>
     </div>
-    <div class="header-count">
-      Quote <span id="quoteCounter">001</span>
+    <div class="header-controls">
+      <div class="filter-wrap">
+        <select class="anime-select" id="animeFilter" onchange="onFilterChange()" aria-label="Filter by anime">
+          <option value="">All Anime</option>
+        </select>
+      </div>
+      <button class="icon-btn" id="qotdBtn" onclick="loadQotd()" title="Quote of the Day" aria-label="Quote of the Day">
+        ☀
+      </button>
+      <button class="icon-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle theme" aria-label="Toggle light/dark mode">
+        ◐
+      </button>
+      <button class="icon-btn" id="favBtn" onclick="openDrawer()" title="Saved quotes" aria-label="View favorites">
+        ♡
+      </button>
     </div>
   </header>
 
   <main>
     <div class="quote-stage">
-      <div class="quote-number" id="quoteLabel">Loading</div>
+      <div class="quote-eyebrow">
+        <span id="eyebrowLabel">Loading…</span>
+        <span class="qotd-badge" id="qotdBadge">Today's Pick</span>
+      </div>
       <span class="quote-mark" aria-hidden="true">"</span>
-      <p class="quote-text" id="quoteText">The world is not beautiful, therefore it is.</p>
+      <p class="quote-text" id="quoteText"></p>
       <div class="quote-meta" id="quoteMeta">
         <div class="meta-divider"></div>
-        <div class="meta-info">
-          <span class="character-name" id="characterName">Kino</span>
-          <span class="anime-name" id="animeName">Kino's Journey</span>
+        <div class="meta-text">
+          <span class="character-name" id="characterName"></span>
+          <span class="anime-name" id="animeName"></span>
         </div>
       </div>
-      <p class="error-state" id="errorState">Could not load a new quote. Please try again.</p>
+      <p class="error-msg" id="errorMsg">API unavailable — showing a local quote instead.</p>
       <div class="actions">
         <button class="btn-next" id="nextBtn" onclick="loadQuote()">
           <span>Next Quote</span>
         </button>
-        <button class="btn-copy" id="copyBtn" onclick="copyQuote()">Copy</button>
+        <button class="btn-ghost" id="saveBtn" onclick="toggleFavorite()">Save</button>
+        <button class="btn-ghost" id="copyBtn" onclick="copyQuote()">Copy</button>
+        <div class="keyboard-hint" aria-hidden="true">
+          <kbd>Space</kbd> or <kbd>→</kbd> for next
+        </div>
       </div>
     </div>
   </main>
 
   <footer>
-    <span class="footer-text">Kotoba — Words that stayed</span>
+    <div class="footer-left">
+      <span class="footer-text">Kotoba — Words that stayed</span>
+      <span class="footer-counter">Quote <span id="quoteCounter">—</span></span>
+    </div>
     <span class="footer-api">Powered by <a href="https://animechan.io" target="_blank" rel="noopener">AnimeChan</a></span>
   </footer>
 
   <script>
-    const fallbackQuotes = [
+    const fallback = [
       { quote: "The world is not beautiful, therefore it is.", character: "Kino", anime: "Kino's Journey" },
       { quote: "Power is not will, it is the phenomenon of physically making things happen.", character: "Madara Uchiha", anime: "Naruto Shippuden" },
       { quote: "Whatever you lose, you'll find it again. But what you throw away you'll never get back.", character: "Himura Kenshin", anime: "Rurouni Kenshin" },
-      { quote: "I want to be a hero so badly.", character: "Izuku Midoriya", anime: "My Hero Academia" },
-      { quote: "It's not the face that makes someone a monster, it's the choices they make with their lives.", character: "Naruto Uzumaki", anime: "Naruto" },
-      { quote: "The moment you think of giving up, think of the reason why you held on so long.", character: "Natsu Dragneel", anime: "Fairy Tail" },
       { quote: "If you don't take risks, you can't create a future.", character: "Monkey D. Luffy", anime: "One Piece" },
       { quote: "Loneliness is peaceful, but there will be no one to share the peace with.", character: "Lain Iwakura", anime: "Serial Experiments Lain" },
+      { quote: "People's lives don't end when they die. It ends when they lose faith.", character: "Itachi Uchiha", anime: "Naruto" },
+      { quote: "The only thing we're allowed to do is believe that we won't regret the choice we made.", character: "Levi Ackerman", anime: "Attack on Titan" },
+      { quote: "It's okay not to be okay as long as you are not giving up.", character: "Karen Aijou", anime: "Revue Starlight" },
     ];
 
     let quoteCount = 0;
-    let currentQuote = { quote: '', character: '', anime: '' };
+    let current = { quote: '', character: '', anime: '' };
+    let isQotd = false;
 
-    function setLoadingBar(state) {
-      const bar = document.getElementById('loadingBar');
-      bar.className = 'loading-bar';
-      if (state === 'start') {
-        bar.classList.add('active');
-      } else if (state === 'done') {
-        bar.classList.add('done');
-        setTimeout(() => { bar.className = 'loading-bar'; }, 400);
+    function bar(state) {
+      const el = document.getElementById('loadingBar');
+      el.className = 'loading-bar';
+      if (state === 'start') el.classList.add('running');
+      if (state === 'done') {
+        el.classList.add('done');
+        setTimeout(() => el.className = 'loading-bar', 350);
       }
     }
 
-    function setElements(quote, character, anime) {
+    function render(quote, character, anime) {
+      current = { quote, character, anime };
       document.getElementById('quoteText').textContent = quote;
-      document.getElementById('characterName').textContent = character.toUpperCase();
+      document.getElementById('characterName').textContent = character;
       document.getElementById('animeName').textContent = anime;
-      currentQuote = { quote, character, anime };
+      updateSaveBtn();
     }
 
-    function transitionOut(callback) {
+    function transition(callback) {
       const text = document.getElementById('quoteText');
       const meta = document.getElementById('quoteMeta');
-      text.classList.add('fading');
-      meta.classList.add('fading');
+      text.classList.add('out');
+      meta.classList.add('out');
       setTimeout(() => {
         callback();
-        text.classList.remove('fading');
-        meta.classList.remove('fading');
-      }, 350);
+        text.classList.remove('out');
+        meta.classList.remove('out');
+      }, 300);
+    }
+
+    function setEyebrow(label) {
+      document.getElementById('eyebrowLabel').textContent = label;
+    }
+
+    function setQotdMode(on) {
+      isQotd = on;
+      const badge = document.getElementById('qotdBadge');
+      const btn = document.getElementById('qotdBtn');
+      badge.classList.toggle('visible', on);
+      btn.classList.toggle('active', on);
     }
 
     async function loadQuote() {
       const btn = document.getElementById('nextBtn');
-      const error = document.getElementById('errorState');
+      const err = document.getElementById('errorMsg');
+      const filter = document.getElementById('animeFilter').value;
 
       btn.disabled = true;
-      error.classList.remove('visible');
-      setLoadingBar('start');
+      err.classList.remove('visible');
+      setQotdMode(false);
+      bar('start');
 
+      let data = null;
       try {
-        const res = await fetch('/api/quote');
-        if (!res.ok) throw new Error('API error');
-        const data = await res.json();
+        const url = filter ? `/api/quote?anime=${encodeURIComponent(filter)}` : '/api/quote';
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('api');
+        data = await res.json();
         if (data.error) throw new Error(data.error);
+      } catch {
+        const pick = fallback[Math.floor(Math.random() * fallback.length)];
+        data = pick;
+        err.classList.add('visible');
+      }
 
-        quoteCount++;
-        setLoadingBar('done');
+      quoteCount++;
+      bar('done');
 
-        transitionOut(() => {
-          setElements(data.quote, data.character, data.anime);
-          updateCounter();
+      transition(() => {
+        render(data.quote, data.character, data.anime);
+        setEyebrow(`Series #${quoteCount}`);
+        document.getElementById('quoteCounter').textContent = String(quoteCount).padStart(3, '0');
+      });
+
+      setTimeout(() => btn.disabled = false, 350);
+    }
+
+    function loadQotd() {
+      const today = new Date().toISOString().slice(0, 10);
+      const stored = localStorage.getItem('qotd');
+
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.date === today) {
+          transition(() => {
+            render(parsed.quote, parsed.character, parsed.anime);
+            setEyebrow('Quote of the Day');
+            setQotdMode(true);
+          });
+          return;
+        }
+      }
+
+      const idx = dateToIndex(today, fallback.length);
+      const pick = fallback[idx];
+
+      fetch('/api/quote')
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          const q = (data && !data.error) ? data : pick;
+          localStorage.setItem('qotd', JSON.stringify({ date: today, ...q }));
+          transition(() => {
+            render(q.quote, q.character, q.anime);
+            setEyebrow('Quote of the Day');
+            setQotdMode(true);
+          });
+        })
+        .catch(() => {
+          localStorage.setItem('qotd', JSON.stringify({ date: today, ...pick }));
+          transition(() => {
+            render(pick.quote, pick.character, pick.anime);
+            setEyebrow('Quote of the Day');
+            setQotdMode(true);
+          });
+        });
+    }
+
+    function dateToIndex(dateStr, len) {
+      let hash = 0;
+      for (let i = 0; i < dateStr.length; i++) {
+        hash = ((hash << 5) - hash) + dateStr.charCodeAt(i);
+        hash |= 0;
+      }
+      return Math.abs(hash) % len;
+    }
+
+    function onFilterChange() {
+      loadQuote();
+    }
+
+    async function loadAnimes() {
+      try {
+        const res = await fetch('/api/animes');
+        if (!res.ok) return;
+        const data = await res.json();
+        const select = document.getElementById('animeFilter');
+        data.animes.slice(0, 80).forEach(name => {
+          const opt = document.createElement('option');
+          opt.value = name;
+          opt.textContent = name;
+          select.appendChild(opt);
         });
       } catch {
-        setLoadingBar('done');
-        const fallback = fallbackQuotes[Math.floor(Math.random() * fallbackQuotes.length)];
-        quoteCount++;
-
-        transitionOut(() => {
-          setElements(fallback.quote, fallback.character, fallback.anime);
-          updateCounter();
-          error.classList.add('visible');
-        });
-      } finally {
-        setTimeout(() => { btn.disabled = false; }, 400);
       }
     }
 
-    function updateCounter() {
-      const label = document.getElementById('quoteLabel');
-      const counter = document.getElementById('quoteCounter');
-      label.textContent = `Series #${quoteCount}`;
-      counter.textContent = String(quoteCount).padStart(3, '0');
+    function getFavorites() {
+      try {
+        return JSON.parse(localStorage.getItem('favorites') || '[]');
+      } catch {
+        return [];
+      }
+    }
+
+    function saveFavorites(list) {
+      localStorage.setItem('favorites', JSON.stringify(list));
+    }
+
+    function isSaved() {
+      return getFavorites().some(f => f.quote === current.quote);
+    }
+
+    function toggleFavorite() {
+      let list = getFavorites();
+      if (isSaved()) {
+        list = list.filter(f => f.quote !== current.quote);
+      } else {
+        list.unshift({ ...current, savedAt: Date.now() });
+      }
+      saveFavorites(list);
+      updateSaveBtn();
+      renderDrawer();
+    }
+
+    function updateSaveBtn() {
+      const btn = document.getElementById('saveBtn');
+      const favBtn = document.getElementById('favBtn');
+      const saved = isSaved();
+      btn.textContent = saved ? 'Saved ♥' : 'Save';
+      btn.classList.toggle('saved', saved);
+      const count = getFavorites().length;
+      favBtn.textContent = count > 0 ? `♥ ${count}` : '♡';
+      favBtn.classList.toggle('active', count > 0);
+    }
+
+    function openDrawer() {
+      renderDrawer();
+      document.getElementById('favDrawer').classList.add('open');
+      document.getElementById('drawerOverlay').classList.add('visible');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeDrawer() {
+      document.getElementById('favDrawer').classList.remove('open');
+      document.getElementById('drawerOverlay').classList.remove('visible');
+      document.body.style.overflow = '';
+    }
+
+    function renderDrawer() {
+      const body = document.getElementById('drawerBody');
+      const list = getFavorites();
+
+      if (list.length === 0) {
+        body.innerHTML = '<p class="favorites-empty">No saved quotes yet.<br>Hit Save on any quote to keep it here.</p>';
+        return;
+      }
+
+      body.innerHTML = list.map((item, i) => `
+        <div class="fav-item" onclick="loadFavorite(${i})">
+          <p class="fav-quote">"${item.quote}"</p>
+          <p class="fav-meta">${item.character} — ${item.anime}</p>
+          <button class="fav-remove" onclick="removeFavorite(event, ${i})" aria-label="Remove">✕</button>
+        </div>
+      `).join('');
+    }
+
+    function loadFavorite(index) {
+      const list = getFavorites();
+      const item = list[index];
+      if (!item) return;
+      closeDrawer();
+      transition(() => {
+        render(item.quote, item.character, item.anime);
+        setEyebrow('From your saved quotes');
+        setQotdMode(false);
+      });
+    }
+
+    function removeFavorite(e, index) {
+      e.stopPropagation();
+      let list = getFavorites();
+      list.splice(index, 1);
+      saveFavorites(list);
+      renderDrawer();
+      updateSaveBtn();
+    }
+
+    function clearAllFavorites() {
+      saveFavorites([]);
+      renderDrawer();
+      updateSaveBtn();
     }
 
     function copyQuote() {
       const btn = document.getElementById('copyBtn');
-      const text = `"${currentQuote.quote}" — ${currentQuote.character} (${currentQuote.anime})`;
+      const text = `"${current.quote}" — ${current.character} (${current.anime})`;
 
       navigator.clipboard.writeText(text).then(() => {
-        btn.textContent = 'Copied';
+        btn.textContent = 'Copied ✓';
         btn.classList.add('copied');
         setTimeout(() => {
           btn.textContent = 'Copy';
@@ -527,10 +1025,37 @@
         }, 2000);
       }).catch(() => {
         btn.textContent = 'Failed';
-        setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+        setTimeout(() => btn.textContent = 'Copy', 2000);
       });
     }
 
+    function toggleTheme() {
+      const html = document.documentElement;
+      const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('theme', next);
+    }
+
+    function restoreTheme() {
+      const saved = localStorage.getItem('theme');
+      if (saved) document.documentElement.setAttribute('data-theme', saved);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      const tag = document.activeElement.tagName;
+      if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+
+      if (e.key === 'ArrowRight' || e.key === ' ') {
+        e.preventDefault();
+        if (!document.getElementById('nextBtn').disabled) loadQuote();
+      }
+      if (e.key === 's' || e.key === 'S') toggleFavorite();
+      if (e.key === 'Escape') closeDrawer();
+      if (e.key === 'd' || e.key === 'D') loadQotd();
+    });
+
+    restoreTheme();
+    loadAnimes();
     loadQuote();
   </script>
 </body>

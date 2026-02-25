@@ -6,23 +6,38 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
+  const { anime } = req.query;
+
+  const url = anime
+    ? `https://animechan.io/api/v1/quotes/anime?title=${encodeURIComponent(anime)}&page=1`
+    : "https://animechan.io/api/v1/quotes/random";
+
   try {
-    const response = await fetch("https://animechan.io/api/v1/quotes/random", {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await fetch(url);
 
     if (!response.ok) {
-      throw new Error(`Upstream API returned ${response.status}`);
+      throw new Error(`Upstream error ${response.status}`);
     }
 
     const data = await response.json();
 
+    if (anime) {
+      const quotes = data.data ?? [];
+      if (quotes.length === 0) {
+        return res.status(404).json({ error: "No quotes found for that anime" });
+      }
+      const picked = quotes[Math.floor(Math.random() * quotes.length)];
+      return res.status(200).json({
+        quote: picked.content ?? "No quote found",
+        character: picked.character?.name ?? "Unknown",
+        anime: picked.anime?.name ?? anime,
+      });
+    }
+
     return res.status(200).json({
-      quote: data.data?.content ?? data.quote ?? "No quote found",
-      character: data.data?.character?.name ?? data.character ?? "Unknown",
-      anime: data.data?.anime?.name ?? data.anime ?? "Unknown",
+      quote: data.data?.content ?? "No quote found",
+      character: data.data?.character?.name ?? "Unknown",
+      anime: data.data?.anime?.name ?? "Unknown",
     });
   } catch (err) {
     console.error("Quote fetch failed:", err.message);
