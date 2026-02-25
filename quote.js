@@ -9,8 +9,8 @@ export default async function handler(req, res) {
   const { anime } = req.query;
 
   const url = anime
-    ? `https://animechan.io/api/v1/quotes/anime?title=${encodeURIComponent(anime)}&page=1`
-    : "https://animechan.io/api/v1/quotes/random";
+    ? `https://api.animechan.io/v1/quotes/anime?title=${encodeURIComponent(anime)}&page=1`
+    : "https://api.animechan.io/v1/quotes/random";
 
   try {
     const response = await fetch(url);

@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const response = await fetch("https://animechan.io/api/v1/available/anime?page=1");
+    const response = await fetch("https://api.animechan.io/v1/available/anime?page=1");
 
     if (!response.ok) {
       throw new Error(`Upstream error ${response.status}`);
