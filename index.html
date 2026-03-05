@@ -32,6 +32,8 @@
     [data-theme="light"] {
       --ink: #f5f0e8;
       --paper: #1a1714;
+      --accent: #b5451b;
+      --accent-dim: rgba(181, 69, 27, 0.12);
       --muted: #8a8480;
       --line: rgba(26, 23, 20, 0.12);
       --surface: #ede8df;
@@ -153,6 +155,36 @@
       background: var(--accent-dim);
     }
 
+    /* filter dropdown — matches the icon-btn aesthetic */
+    .filter-select {
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      padding: 0 0.6rem;
+      height: 36px;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.62rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      transition: color 0.2s ease, border-color 0.2s ease;
+      max-width: 140px;
+      flex-shrink: 0;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    .filter-select:hover {
+      color: var(--paper);
+      border-color: rgba(245, 240, 232, 0.3);
+    }
+
+    .filter-select option {
+      background: var(--surface);
+      color: var(--paper);
+      letter-spacing: 0;
+    }
+
     .fav-count {
       font-size: 0.6rem;
       font-weight: 700;
@@ -225,6 +257,7 @@
       display: block;
       margin-bottom: 1.25rem;
       user-select: none;
+      transition: color 0.3s ease;
     }
 
     .quote-text {
@@ -250,6 +283,7 @@
       height: 1px;
       background: var(--accent);
       flex-shrink: 0;
+      transition: background 0.3s ease;
     }
 
     .meta-text {
@@ -565,6 +599,8 @@
       padding: 1rem 2rem;
       border-top: 1px solid var(--line);
       flex-shrink: 0;
+      display: flex;
+      gap: 0.5rem;
     }
 
     .drawer-clear {
@@ -578,13 +614,33 @@
       letter-spacing: 0.1em;
       text-transform: uppercase;
       cursor: pointer;
-      width: 100%;
+      flex: 1;
       transition: color 0.2s ease, border-color 0.2s ease;
     }
 
     .drawer-clear:hover {
       color: var(--accent);
       border-color: var(--accent);
+    }
+
+    .drawer-export {
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      padding: 0.6rem 1rem;
+      font-family: 'Syne', sans-serif;
+      font-size: 0.62rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      flex: 1;
+      transition: color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .drawer-export:hover {
+      color: var(--paper);
+      border-color: rgba(245, 240, 232, 0.3);
     }
 
     @keyframes fadeUp {
@@ -666,6 +722,7 @@
     <div class="drawer-body" id="drawerBody"></div>
     <div class="drawer-footer">
       <button class="drawer-clear" onclick="clearFavorites()">Clear all</button>
+      <button class="drawer-export" onclick="exportFavorites()">Export</button>
     </div>
   </aside>
 
@@ -675,6 +732,10 @@
       <span class="logo-sub">Anime Quote Archive</span>
     </div>
     <div class="header-controls">
+      <select class="filter-select" id="filterSelect" onchange="setFilter(this.value)" title="Filter by anime series">
+        <option value="">All Series</option>
+      </select>
+      <button class="icon-btn" id="surpriseBtn" onclick="fetchRandom()" title="Surprise me — random from web">🌐</button>
       <button class="icon-btn" id="apiBtn" onclick="checkApi()" title="Check API status">⚡</button>
       <button class="icon-btn" id="qotdBtn" onclick="loadQotd()" title="Quote of the Day">☀</button>
       <button class="icon-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle theme">◐</button>
@@ -705,6 +766,7 @@
         </button>
         <button class="btn-ghost" id="saveBtn" onclick="toggleFavorite()">Save</button>
         <button class="btn-ghost" id="copyBtn" onclick="copyQuote()">Copy</button>
+        <button class="btn-ghost" id="shareBtn" onclick="shareQuote()">Share</button>
         <span class="keyboard-hint" aria-hidden="true">
           <kbd>Space</kbd><kbd>→</kbd> next &nbsp; <kbd>S</kbd> save
         </span>
@@ -723,6 +785,10 @@
   <div class="toast" id="toast"></div>
 
   <script>
+    const SITE_URL = 'https://kotoba-vert.vercel.app';
+
+    // Each entry: { quote: "...", character: "Name", anime: "Series Title" }
+    // Anime only — no video games, no real people
     const quotes = [
       { quote: "The world is not beautiful, therefore it is.", character: "Kino", anime: "Kino's Journey" },
       { quote: "Power is not will, it is the phenomenon of physically making things happen.", character: "Madara Uchiha", anime: "Naruto Shippuden" },
@@ -745,7 +811,7 @@
       { quote: "Knowing you're different is only the beginning. If you accept these differences you'll be able to get past them and grow even closer.", character: "Miss Kobayashi", anime: "Miss Kobayashi's Dragon Maid" },
       { quote: "No matter how hard or impossible it is, never lose sight of your goal.", character: "Monkey D. Luffy", anime: "One Piece" },
       { quote: "I refuse to let my fear control me anymore.", character: "Izuku Midoriya", anime: "My Hero Academia" },
-      { quote: "It's not about whether you can or you can't. Some things in life, you just do.", character: "Lightning", anime: "Final Fantasy XIII" },
+      { quote: "Whatever happens, happens.", character: "Spike Spiegel", anime: "Cowboy Bebop" },
       { quote: "The strong should aid and protect the weak. Then the weak will become strong and they in turn will aid and protect those weaker than themselves. That is the duty of the strong.", character: "Fuhrer King Bradley", anime: "Fullmetal Alchemist" },
       { quote: "Being weak is nothing to be ashamed of. Staying weak is.", character: "Fuhrer King Bradley", anime: "Fullmetal Alchemist" },
       { quote: "Mistakes are not shackles that halt one forward. To not make mistakes is the abnormality.", character: "Shogo Makishima", anime: "Psycho-Pass" },
@@ -775,7 +841,6 @@
       { quote: "Protecting someone means giving them a place to belong. Giving them a place where they can be happy.", character: "Princess Lenessia", anime: "Log Horizon" },
       { quote: "Moving on doesn't mean you forget about things. It just means you have to accept what happened and continue living.", character: "Erza Scarlet", anime: "Fairy Tail" },
       { quote: "A true friend is someone who sees the pain in your eyes while everyone else believes the smile on your face.", character: "Pain", anime: "Naruto Shippuden" },
-      { quote: "Religion, ideology, resources, land, spite, love or just because. No matter how pathetic the reason, it's enough to start a war.", character: "Paine", anime: "Final Fantasy X-2" },
       { quote: "You need to accept the fact that you're not the best and have all the will to strive to be better than anyone you face.", character: "Roronoa Zoro", anime: "One Piece" },
       { quote: "If you are killed, I will kill the person who killed you.", character: "Erza Scarlet", anime: "Fairy Tail" },
       { quote: "The people's greatest fear is being laughed at. But that's the one thing that lets you escape from the script that society has provided.", character: "Nagato Yuki", anime: "The Melancholy of Haruhi Suzumiya" },
@@ -790,10 +855,8 @@
       { quote: "Music has a power of its own, transcending all words and logic.", character: "Kousei Arima", anime: "Your Lie in April" },
       { quote: "You've grown so much, yet you still fit perfectly in my arms.", character: "Violet Evergarden", anime: "Violet Evergarden" },
       { quote: "Even the most useless person has their use somewhere.", character: "Osamu Dazai", anime: "Bungo Stray Dogs" },
-      { quote: "You don't need a reason to help people.", character: "Zidane Tribal", anime: "Final Fantasy IX" },
       { quote: "All this time, I seriously thought that it's better to die than to live your life alone.", character: "Kirito", anime: "Sword Art Online" },
       { quote: "Living is a continuous process of choosing what kind of person to become.", character: "Ginko", anime: "Mushishi" },
-      { quote: "Life isn't just about passing on your genes. We can leave behind much more than just DNA. Through speech, music, literature and movies — what we've seen, heard, felt, anger, joy and sorrow — these are the things I will pass on.", character: "Big Boss", anime: "Metal Gear Solid" },
       { quote: "The world is full of obvious things which nobody by any chance ever observes.", character: "L Lawliet", anime: "Death Note" },
       { quote: "I am justice!", character: "Light Yagami", anime: "Death Note" },
       { quote: "This world is rotten and those who are making it rot deserve to die.", character: "Light Yagami", anime: "Death Note" },
@@ -816,6 +879,38 @@
       { quote: "We don't have to know what tomorrow holds. That's why we can live for everything we're worth today.", character: "Fruits Basket Character", anime: "Fruits Basket" },
       { quote: "Forgive me for being selfish. I just... I want to live.", character: "Homura Akemi", anime: "Puella Magi Madoka Magica" },
       { quote: "Just be yourself, as long as you don't hurt others in the process.", character: "Kira Yamato", anime: "Gundam SEED" },
+      // Dragon Ball Z
+      { quote: "Push through the pain. Giving up hurts more.", character: "Vegeta", anime: "Dragon Ball Z" },
+      { quote: "Over my lifetime I've known many, many people, but I've never known a single one I'd call perfect. Everyone has flaws.", character: "Goku", anime: "Dragon Ball Z" },
+      // Demon Slayer
+      { quote: "No matter how many people you may lose, you have no choice but to go on living.", character: "Tanjiro Kamado", anime: "Demon Slayer" },
+      { quote: "Set your heart ablaze.", character: "Kyojuro Rengoku", anime: "Demon Slayer" },
+      { quote: "Don't lose heart. It'll be a waste of the life you were born with.", character: "Inosuke Hashibira", anime: "Demon Slayer" },
+      // Jujutsu Kaisen
+      { quote: "I don't know how I'll feel when I'm dead, but I don't want to regret the way I lived.", character: "Yuji Itadori", anime: "Jujutsu Kaisen" },
+      { quote: "A person who cannot abandon everything cannot change anything.", character: "Kento Nanami", anime: "Jujutsu Kaisen" },
+      // Spy x Family
+      { quote: "There is no greater fortune in life than being loved by someone.", character: "Loid Forger", anime: "Spy x Family" },
+      // Chainsaw Man
+      { quote: "I want to eat breakfast, lunch, and dinner like a normal person. That's my dream.", character: "Denji", anime: "Chainsaw Man" },
+      // Vinland Saga
+      { quote: "You have no enemies. No one has any enemies. There is no one you need to hurt.", character: "Thors", anime: "Vinland Saga" },
+      { quote: "A real warrior doesn't need a sword.", character: "Thorfinn Karlsefni", anime: "Vinland Saga" },
+      // Steins;Gate
+      { quote: "We must look for a way. Not an excuse.", character: "Rintaro Okabe", anime: "Steins;Gate" },
+      { quote: "The universe has a beginning, but no end. Stars are born and die. But the universe continues on forever.", character: "Rintaro Okabe", anime: "Steins;Gate" },
+      // Tokyo Ghoul
+      { quote: "If you were to write a story with me in the lead role, it would certainly be a tragedy.", character: "Ken Kaneki", anime: "Tokyo Ghoul" },
+      // Mob Psycho 100
+      { quote: "Psychic powers are not everything. Mob is more than his abilities.", character: "Arataka Reigen", anime: "Mob Psycho 100" },
+      { quote: "If you keep hiding your true self, you'll keep on running forever.", character: "Shigeo Kageyama", anime: "Mob Psycho 100" },
+      // Hunter x Hunter
+      { quote: "If you want to get to know someone, find out what makes them angry.", character: "Gon Freecss", anime: "Hunter x Hunter" },
+      { quote: "When I say it doesn't hurt me, that means I can bear it.", character: "Killua Zoldyck", anime: "Hunter x Hunter" },
+      // Re:Zero
+      { quote: "I want to take pride in the struggles I've overcome.", character: "Subaru Natsuki", anime: "Re:Zero" },
+      // Neon Genesis Evangelion
+      { quote: "I mustn't run away.", character: "Shinji Ikari", anime: "Neon Genesis Evangelion" },
     ];
 
     let quoteCount = 0;
@@ -823,6 +918,17 @@
     let busy = false;
     let current = { quote: '', character: '', anime: '' };
     let recentIdx = [];
+    let activeFilter = ''; // empty = show all series
+
+    function getFilteredQuotes() {
+      return activeFilter ? quotes.filter(q => q.anime === activeFilter) : quotes;
+    }
+
+    function setFilter(val) {
+      activeFilter = val;
+      recentIdx = []; // reset recent pool when filter changes
+      loadQuote();
+    }
 
     function bar(state) {
       const el = document.getElementById('loadingBar');
@@ -861,12 +967,14 @@
     }
 
     function pickQuote() {
-      const available = quotes.map((_, i) => i).filter(i => !recentIdx.includes(i));
-      const pool = available.length > 0 ? available : quotes.map((_, i) => i);
-      const idx = pool[Math.floor(Math.random() * pool.length)];
+      const pool = getFilteredQuotes();
+      const available = pool.map((_, i) => i).filter(i => !recentIdx.includes(i));
+      const candidates = available.length > 0 ? available : pool.map((_, i) => i);
+      const idx = candidates[Math.floor(Math.random() * candidates.length)];
       recentIdx.push(idx);
-      if (recentIdx.length > Math.floor(quotes.length / 2)) recentIdx.shift();
-      return quotes[idx];
+      // scale the recent-avoid window to the filtered set size
+      if (recentIdx.length > Math.floor(pool.length / 2)) recentIdx.shift();
+      return pool[idx];
     }
 
     function loadQuote() {
@@ -879,15 +987,20 @@
       setQotd(false);
       bar('start');
 
-      const data = pickQuote();
-      quoteCount++;
-      bar('done');
+      try {
+        const data = pickQuote();
+        quoteCount++;
+        bar('done');
 
-      swap(() => {
-        render(data.quote, data.character, data.anime);
-        document.getElementById('eyebrowLabel').textContent = `Series #${quoteCount}`;
-        document.getElementById('quoteCounter').textContent = String(quoteCount).padStart(3, '0');
-      });
+        swap(() => {
+          render(data.quote, data.character, data.anime);
+          document.getElementById('eyebrowLabel').textContent = `Series #${quoteCount}`;
+          document.getElementById('quoteCounter').textContent = String(quoteCount).padStart(3, '0');
+        });
+      } catch (err) {
+        bar('done');
+        showToast('Something went wrong loading a quote', 'fail');
+      }
 
       setTimeout(() => {
         btn.disabled = false;
@@ -943,7 +1056,11 @@
     }
 
     function saveFavs(list) {
-      localStorage.setItem('kotoba_favs', JSON.stringify(list));
+      try {
+        localStorage.setItem('kotoba_favs', JSON.stringify(list));
+      } catch {
+        showToast('Storage full — could not save', 'fail');
+      }
     }
 
     function isSaved() {
@@ -951,15 +1068,19 @@
     }
 
     function toggleFavorite() {
-      let list = getFavs();
-      if (isSaved()) {
-        list = list.filter(f => f.quote !== current.quote);
-      } else {
-        list.unshift({ ...current, at: Date.now() });
+      try {
+        let list = getFavs();
+        if (isSaved()) {
+          list = list.filter(f => f.quote !== current.quote);
+        } else {
+          list.unshift({ ...current, at: Date.now() });
+        }
+        saveFavs(list);
+        updateSaveBtn();
+        renderDrawer();
+      } catch {
+        showToast('Could not update favorites', 'fail');
       }
-      saveFavs(list);
-      updateSaveBtn();
-      renderDrawer();
     }
 
     function updateSaveBtn() {
@@ -1038,14 +1159,35 @@
     function copyQuote() {
       const btn = document.getElementById('copyBtn');
       const text = `"${current.quote}" — ${current.character} (${current.anime})`;
-      navigator.clipboard.writeText(text).then(() => {
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          btn.textContent = 'Copied ✓';
+          btn.classList.add('copied');
+          setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+        }).catch(() => fallbackCopy(text, btn));
+      } else {
+        fallbackCopy(text, btn);
+      }
+    }
+
+    // textarea trick for browsers that block clipboard API
+    function fallbackCopy(text, btn) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.cssText = 'position:fixed;opacity:0;pointer-events:none';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
         btn.textContent = 'Copied ✓';
         btn.classList.add('copied');
         setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
-      }).catch(() => {
+      } catch {
         btn.textContent = 'Failed';
         setTimeout(() => btn.textContent = 'Copy', 2000);
-      });
+      }
+      document.body.removeChild(ta);
     }
 
     function showToast(msg, type) {
@@ -1058,6 +1200,61 @@
 
     function checkApi() {
       showToast(`${quotes.length} quotes loaded — no API needed`, 'ok');
+    }
+
+    function shareQuote() {
+      const text = `"${current.quote}" — ${current.character} (${current.anime})\n\nvia Kotoba 🔗 ${SITE_URL}`;
+      window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(text), '_blank');
+    }
+
+    async function fetchRandom() {
+      const btn = document.getElementById('surpriseBtn');
+      btn.disabled = true;
+      try {
+        const res = await fetch('/api/quote');
+        if (!res.ok) throw new Error('API returned ' + res.status);
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
+        swap(() => {
+          render(data.quote, data.character, data.anime);
+          document.getElementById('eyebrowLabel').textContent = 'From the web';
+          setQotd(false);
+        });
+      } catch {
+        showToast('Could not fetch quote — check your connection', 'fail');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function exportFavorites() {
+      const list = getFavs();
+      if (list.length === 0) { showToast('Nothing saved to export yet', 'fail'); return; }
+      const lines = [
+        'My Kotoba Collection',
+        '====================',
+        '',
+        ...list.flatMap(f => [`"${f.quote}"`, `— ${f.character}, ${f.anime}`, '']),
+        '---',
+        `Saved from Kotoba (${SITE_URL})`
+      ];
+      const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'kotoba-favorites.txt';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    function populateFilter() {
+      const sel = document.getElementById('filterSelect');
+      const names = [...new Set(quotes.map(q => q.anime))].sort();
+      names.forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        sel.appendChild(opt);
+      });
     }
 
     function toggleTheme() {
@@ -1074,9 +1271,22 @@
       if (e.key === 'd' || e.key === 'D') loadQotd();
     });
 
+    // swipe left to load next quote — simple, no libs needed
+    const SWIPE_THRESHOLD = 50;
+    let touchStartX = 0;
+    document.addEventListener('touchstart', (e) => {
+      if (e.touches && e.touches.length > 0) touchStartX = e.touches[0].clientX;
+    }, { passive: true });
+    document.addEventListener('touchend', (e) => {
+      if (!e.changedTouches || e.changedTouches.length === 0) return;
+      const dx = touchStartX - e.changedTouches[0].clientX;
+      if (dx > SWIPE_THRESHOLD) loadQuote();
+    }, { passive: true });
+
     const savedTheme = localStorage.getItem('kotoba_theme');
     if (savedTheme) document.documentElement.setAttribute('data-theme', savedTheme);
 
+    populateFilter();
     updateSaveBtn();
     loadQuote();
   </script>
