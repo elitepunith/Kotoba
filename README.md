@@ -29,7 +29,8 @@ The **⚡ button** in the header tells you how many quotes are loaded.
 /
 ├── index.html       — everything lives here
 ├── api/
-│   └── quote.js     — serverless proxy (kept for future use)
+│   ├── quote.js     — serverless proxy for random quotes
+│   └── animes.js    — serverless proxy for anime list
 └── vercel.json
 ```
 
